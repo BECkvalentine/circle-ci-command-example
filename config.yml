@@ -1,0 +1,34 @@
+version: 2.1
+
+setup: true
+
+orbs:
+  path-filtering: circleci/path-filtering@0.1.1
+  continuation: circleci/continuation@0.2.0
+
+
+jobs:
+  generate-dynamic-ci-config:
+    executor: continuation/default
+    steps:
+      - checkout
+      - run:
+          name: Setup Var within command (WORKS)
+          command: |
+            inParentConfig='This is from the parent config'
+            echo $inParentConfig
+      - run:
+          name: Generating a dynamic config
+          command: |
+            ./.circleci/test-genertion.sh "From Parent. Should be echoed in from generated config"
+      - continuation/continue:
+          configuration_path: dynamic-static-test.yml
+          parameters: '{
+            "run_generated_config": true
+          }'
+
+workflows:
+  version: 2
+  dynamic-config-based-on-file-path:
+    jobs:
+      - generate-dynamic-ci-config
